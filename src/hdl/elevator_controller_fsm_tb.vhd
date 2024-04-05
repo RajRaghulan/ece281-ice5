@@ -58,7 +58,7 @@ architecture test_bench of elevator_controller_fsm_tb is
 	
 	component elevator_controller_fsm is
 		Port ( i_clk 	 : in  STD_LOGIC;
-			   i_reset 	 : in  STD_LOGIC; -- synchronous
+			   i_reset 	 : in  STD_LOGIC; 
 			   i_stop 	 : in  STD_LOGIC;
 			   i_up_down : in  STD_LOGIC;
 			   o_floor 	 : out STD_LOGIC_VECTOR (3 downto 0));
@@ -98,27 +98,39 @@ begin
 	
 	-- Test Plan Process --------------------------------
 	test_process : process 
-	begin
-        -- i_reset into initial state (o_floor 2)
-        w_reset <= '1';  wait for k_clk_period;
-            assert w_floor = "0010" report "bad reset" severity failure; 
-        -- clear reset
-		
-		-- active UP signal
-		w_up_down <= '1'; 
-		
-		-- stay on each o_floor for 2 cycles and then move up to the next o_floor
-        w_stop <= '1';  wait for k_clk_period * 2;
-            assert w_floor = "0010" report "bad wait on floor2" severity failure;
-        w_stop <= '0';  wait for k_clk_period;
-            assert w_floor = "0011" report "bad up from floor2" severity failure;
-		-- rest of cases
-        
-        -- go back DOWN
-          
-		  	
-		wait; -- wait forever
-	end process;	
+    begin
+        w_reset <= '1';  
+        wait for k_clk_period;
+        w_reset <= '0';  
+        assert w_floor = "0010" report "bad reset" severity failure; 
+    
+        w_up_down <= '1'; 
+        w_stop <= '0';    
+        wait for k_clk_period;
+        assert w_floor = "0011" report "bad up to floor 3" severity failure;
+        wait for k_clk_period;
+        assert w_floor = "0100" report "bad up to top floor" severity failure;
+        w_stop <= '1';
+        wait for k_clk_period * 2; 
+        assert w_floor = "0100" report "bad stay at top floor" severity failure;
+        w_stop <= '0';
+        w_up_down <= '0';
+        wait for k_clk_period;
+        assert w_floor = "0011" report "bad down to floor 3" severity failure;
+        wait for k_clk_period;
+        assert w_floor = "0010" report "bad down to floor 2" severity failure;
+        wait for k_clk_period;
+        assert w_floor = "0001" report "bad down to bottom floor" severity failure;
+         w_stop <= '1';
+        wait for k_clk_period * 2; 
+        assert w_floor = "0001" report "bad stay at bottom floor " severity failure;
+        w_stop <= '0';
+        w_up_down <= '1';
+        wait for k_clk_period;
+        assert w_floor = "0010" report "bad back to floor 2" severity failure;
+    
+        wait; 
+    end process; 
 	-----------------------------------------------------	
 	
 end test_bench;
